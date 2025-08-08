@@ -12,6 +12,7 @@ interface CreateGameResponse {
   engine: string;
   zip_base64: string;
   instructions: string;
+  html_content: string;
 }
 
 interface CodeGenerationRequest {

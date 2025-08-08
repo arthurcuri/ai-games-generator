@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from "@/hooks/use-toast";
 import { gameService, CreateGameResponse } from '@/services/gameService';
@@ -21,7 +22,7 @@ const GameWorkspace = () => {
   const [gameHtml, setGameHtml] = useState<string>('');
 
   // Função para processar e corrigir o HTML do jogo
-  const processGameHtml = useCallback((html: string): string => {
+  const processGameHtml = (html: string): string => {
     // Verificar se é um HTML válido
     if (!html || !html.includes('<html')) {
       return html;
@@ -61,9 +62,9 @@ const GameWorkspace = () => {
     }
     
     return html;
-  }, []);
+  };
 
-  const extractGameHtml = useCallback(async (zipBase64: string) => {
+  const extractGameHtml = async (zipBase64: string) => {
     try {
       console.log('🔄 Iniciando extração do HTML...', zipBase64.length, 'chars');
       
@@ -98,12 +99,70 @@ const GameWorkspace = () => {
         }
       }
       
+      // Método 2: Buscar de forma mais específica
+      const docTypeIndex = binaryString.indexOf('<!DOCTYPE html>');
+      const htmlEndIndex = binaryString.lastIndexOf('</html>');
+      
+      if (docTypeIndex !== -1 && htmlEndIndex !== -1 && htmlEndIndex > docTypeIndex) {
+        const extractedHtml = binaryString.substring(docTypeIndex, htmlEndIndex + 7);
+        console.log(`✅ HTML extraído por índices! Length: ${extractedHtml.length}`);
+        const processedHtml = processGameHtml(extractedHtml);
+        setGameHtml(processedHtml);
+        return;
+      }
+      
+      // Método 3: Buscar sem DOCTYPE
+      const htmlStartIndex = binaryString.indexOf('<html');
+      if (htmlStartIndex !== -1 && htmlEndIndex !== -1 && htmlEndIndex > htmlStartIndex) {
+        const extractedHtml = binaryString.substring(htmlStartIndex, htmlEndIndex + 7);
+        console.log(`✅ HTML extraído sem DOCTYPE! Length: ${extractedHtml.length}`);
+        const processedHtml = processGameHtml(extractedHtml);
+        setGameHtml(processedHtml);
+        return;
+      }
+      
+      // Método 4: Usar Web APIs para decodificar ZIP
+      try {
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Verificar assinatura ZIP
+        if (bytes[0] === 0x50 && bytes[1] === 0x4B) {
+          console.log('📦 ZIP válido detectado, tentando extração manual...');
+          
+          // Procurar pelo nome do arquivo "index.html"
+          const zipString = new TextDecoder('latin1').decode(bytes);
+          const indexPos = zipString.indexOf('index.html');
+          
+          if (indexPos !== -1) {
+            console.log('📄 index.html encontrado no ZIP');
+            
+            // Buscar por HTML após o nome do arquivo
+            const afterIndex = zipString.substring(indexPos + 20); // Pular metadados
+            const htmlMatch = afterIndex.match(/<!DOCTYPE html>[\s\S]*?<\/html>/i);
+            
+            if (htmlMatch) {
+              console.log('✅ HTML extraído do ZIP!');
+              const processedHtml = processGameHtml(htmlMatch[0]);
+              setGameHtml(processedHtml);
+              return;
+            }
+          }
+        }
+      } catch (zipError) {
+        console.log('⚠️ Erro na extração ZIP:', zipError);
+      }
+      
       console.error('❌ Não foi possível extrair HTML do ZIP');
+      console.log('🔍 Primeiros 200 chars do conteúdo:', binaryString.substring(0, 200));
+      console.log('🔍 Últimos 100 chars do conteúdo:', binaryString.substring(binaryString.length - 100));
       
     } catch (error) {
       console.error('❌ Erro ao extrair HTML:', error);
     }
-  }, [processGameHtml]);
+  };
 
   useEffect(() => {
     // Receber dados do jogo da navegação
@@ -135,7 +194,104 @@ const GameWorkspace = () => {
     } else {
       setAiResponse("Bem-vindo ao workspace! Você pode gerar código ou fazer modificações no seu jogo aqui.");
     }
-  }, [location, extractGameHtml, processGameHtml]);
+  }, [location]);
+
+  const extractGameHtml = async (zipBase64: string) => {
+    try {
+      console.log('🔄 Iniciando extração do HTML...', zipBase64.length, 'chars');
+      
+      // Método 1: Tentar extrair HTML diretamente da string base64 decodificada
+      const binaryString = atob(zipBase64);
+      console.log(`📦 Binary string length: ${binaryString.length}`);
+      
+      // Buscar padrões HTML na string binária
+      const htmlPatterns = [
+        /<!DOCTYPE html>[\s\S]*?<\/html>/gi,
+        /<!doctype html>[\s\S]*?<\/html>/gi,
+        /<html[\s\S]*?<\/html>/gi
+      ];
+      
+      for (let i = 0; i < htmlPatterns.length; i++) {
+        const pattern = htmlPatterns[i];
+        const matches = binaryString.match(pattern);
+        
+        if (matches && matches.length > 0) {
+          let htmlContent = matches[0];
+          
+          // Limpar caracteres de controle simples
+          htmlContent = htmlContent.replace(/\0/g, '').replace(/\r/g, '');
+          
+          // Verificar se o HTML parece válido
+          if (htmlContent.includes('<head') && htmlContent.includes('<body') && htmlContent.includes('<script')) {
+            console.log(`✅ HTML extraído com padrão ${i + 1}! Length: ${htmlContent.length}`);
+            const processedHtml = processGameHtml(htmlContent);
+            setGameHtml(processedHtml);
+            return;
+          }
+        }
+      }
+      
+      // Método 2: Buscar de forma mais específica
+      const docTypeIndex = binaryString.indexOf('<!DOCTYPE html>');
+      const htmlEndIndex = binaryString.lastIndexOf('</html>');
+      
+      if (docTypeIndex !== -1 && htmlEndIndex !== -1 && htmlEndIndex > docTypeIndex) {
+        const extractedHtml = binaryString.substring(docTypeIndex, htmlEndIndex + 7);
+        console.log(`✅ HTML extraído por índices! Length: ${extractedHtml.length}`);
+        setGameHtml(extractedHtml);
+        return;
+      }
+      
+      // Método 3: Buscar sem DOCTYPE
+      const htmlStartIndex = binaryString.indexOf('<html');
+      if (htmlStartIndex !== -1 && htmlEndIndex !== -1 && htmlEndIndex > htmlStartIndex) {
+        const extractedHtml = binaryString.substring(htmlStartIndex, htmlEndIndex + 7);
+        console.log(`✅ HTML extraído sem DOCTYPE! Length: ${extractedHtml.length}`);
+        setGameHtml(extractedHtml);
+        return;
+      }
+      
+      // Método 4: Usar Web APIs para decodificar ZIP
+      try {
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        // Verificar assinatura ZIP
+        if (bytes[0] === 0x50 && bytes[1] === 0x4B) {
+          console.log('📦 ZIP válido detectado, tentando extração manual...');
+          
+          // Procurar pelo nome do arquivo "index.html"
+          const zipString = new TextDecoder('latin1').decode(bytes);
+          const indexPos = zipString.indexOf('index.html');
+          
+          if (indexPos !== -1) {
+            console.log('📄 index.html encontrado no ZIP');
+            
+            // Buscar por HTML após o nome do arquivo
+            const afterIndex = zipString.substring(indexPos + 20); // Pular metadados
+            const htmlMatch = afterIndex.match(/<!DOCTYPE html>[\s\S]*?<\/html>/i);
+            
+            if (htmlMatch) {
+              console.log('✅ HTML extraído do ZIP!');
+              setGameHtml(htmlMatch[0]);
+              return;
+            }
+          }
+        }
+      } catch (zipError) {
+        console.log('⚠️ Erro na extração ZIP:', zipError);
+      }
+      
+      console.error('❌ Não foi possível extrair HTML do ZIP');
+      console.log('🔍 Primeiros 200 chars do conteúdo:', binaryString.substring(0, 200));
+      console.log('🔍 Últimos 100 chars do conteúdo:', binaryString.substring(binaryString.length - 100));
+      
+    } catch (error) {
+      console.error('❌ Erro ao extrair HTML:', error);
+    }
+  };
 
   const handleSubmitPrompt = async () => {
     if (!prompt.trim()) {
@@ -309,8 +465,27 @@ const GameWorkspace = () => {
         {/* Right Panel - Game Preview */}
         <div className="w-1/2 bg-gray-900 relative">
           {gameData ? (
-            /* Game Preview */
+            /* Game Preview with Instructions */
             <div className="w-full h-full flex flex-col">
+              <div className="bg-black/50 p-4 border-b border-gray-700">
+                <h3 className="text-white font-semibold mb-2">🎮 {gameData.project_name} - JOGUE AGORA!</h3>
+                <p className="text-gray-300 text-sm">{gameData.instructions}</p>
+                <div className="mt-2">
+                  <button 
+                    onClick={() => {
+                      if (gameHtml) {
+                        const blob = new Blob([gameHtml], { type: 'text/html' });
+                        const url = URL.createObjectURL(blob);
+                        window.open(url, '_blank');
+                      }
+                    }}
+                    className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700"
+                  >
+                    🚀 Abrir em Nova Aba
+                  </button>
+                </div>
+              </div>
+              
               {/* Game Preview ou Code View */}
               <div className="flex-1 bg-black relative">
                 {showCode ? (

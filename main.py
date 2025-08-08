@@ -73,6 +73,7 @@ class CreateGameResponse(BaseModel):
     engine: str
     zip_base64: str
     instructions: str
+    html_content: str = Field(..., description="Conteúdo HTML do jogo para preview direto")
 
 # -----------------------------------------------------------------------------
 # Instruções do sistema para o modelo
@@ -107,6 +108,13 @@ SYSTEM_INSTRUCTIONS = (
     "13) Adicione sons simples usando Web Audio API (opcional).\n"
     "14) O arquivo deve rodar perfeitamente offline.\n"
     "15) Mantenha o código limpo e bem comentado.\n"
+    "16) SEMPRE use getElementById e verifique se o elemento existe antes de usar:\n"
+    "    const element = document.getElementById('id');\n"
+    "    if (element) { element.innerText = 'valor'; }\n"
+    "17) Use apenas elementos HTML que realmente existem no documento.\n"
+    "18) Evite acessar elementos DOM que podem não existir.\n"
+    "19) Inicialize o jogo apenas após window.onload ou DOMContentLoaded.\n"
+    "20) Teste todos os acessos DOM com verificações de null.\n"
 )
 
 # -----------------------------------------------------------------------------
@@ -195,12 +203,20 @@ def create_game(req: CreateGameRequest):
 
         zip_bytes = build_zip_from_project(project)
         zip_b64 = base64.b64encode(zip_bytes).decode("utf-8")
+        
+        # Extrair HTML do projeto para preview direto
+        html_content = ""
+        for file in project.files:
+            if file.path == "index.html" and file.kind == "text":
+                html_content = file.content
+                break
 
         return CreateGameResponse(
             project_name=project.project_name,
             engine=project.engine,
             zip_base64=zip_b64,
             instructions=project.instructions,
+            html_content=html_content,
         )
 
     except HTTPException:

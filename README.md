@@ -1,69 +1,170 @@
-# Welcome to your Lovable project
+# 🎮 AI Games Generator
 
-## Project info
+Um gerador de jogos HTML5 inteligente que cria jogos instantaneamente jogáveis usando apenas prompts de texto!
 
-**URL**: https://lovable.dev/projects/84322c50-98b7-4990-ba4e-2545accf5d91
+## 🚀 Funcionalidades
 
-## How can I edit this code?
+- **Geração de Jogos com IA**: Crie jogos completos usando apenas descrições em linguagem natural
+- **Preview Instantâneo**: Visualize e jogue seus jogos imediatamente após a criação
+- **HTML5 Puro**: Jogos gerados usando apenas HTML, CSS e JavaScript vanilla
+- **Download de Projetos**: Baixe o código fonte completo em formato ZIP
+- **Interface Intuitiva**: Interface moderna e responsiva para criação de jogos
+- **Multiplataforma**: Jogos funcionam em qualquer navegador moderno
 
-There are several ways of editing your application.
+## 🛠️ Tecnologias
 
-**Use Lovable**
+### Frontend
+- **React** + **TypeScript**
+- **Vite** (build tool)
+- **Tailwind CSS** (estilização)
+- **shadcn/ui** (componentes UI)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/84322c50-98b7-4990-ba4e-2545accf5d91) and start prompting.
+### Backend
+- **FastAPI** (Python)
+- **Google Gemini AI** (geração de jogos)
+- **Uvicorn** (servidor ASGI)
 
-Changes made via Lovable will be committed automatically to this repo.
+## 📋 Pré-requisitos
 
-**Use your preferred IDE**
+- **Node.js** (v16+)
+- **Python** (3.11+)
+- **Conta Google** (para API Gemini)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 🔧 Instalação
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### 1. Clone o repositório
+```bash
+git clone <url-do-repositorio>
+cd ai-games-generator
 ```
 
-**Edit a file directly in GitHub**
+### 2. Configurar o Backend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+#### Instalar dependências Python
+```bash
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# ou
+.venv\Scripts\activate     # Windows
 
-**Use GitHub Codespaces**
+pip install fastapi uvicorn python-dotenv google-generativeai
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+#### Configurar API Key
+Crie um arquivo `.env` na raiz do projeto:
+```env
+GEMINI_API_KEY=sua_chave_api_aqui
+GEMINI_MODEL=gemini-1.5-flash
+```
 
-## What technologies are used for this project?
+> 💡 **Como obter a API Key:** Acesse [Google AI Studio](https://aistudio.google.com/app/apikey) e gere sua chave gratuita.
 
-This project is built with .
+### 3. Configurar o Frontend
+```bash
+npm install
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## 🚀 Executando o Projeto
 
-## How can I deploy this project?
+### Iniciar o Backend
+```bash
+python start_backend_safe.py
+```
+O backend estará disponível em: http://localhost:8000
 
-Simply open [Lovable](https://lovable.dev/projects/84322c50-98b7-4990-ba4e-2545accf5d91) and click on Share -> Publish.
+### Iniciar o Frontend
+```bash
+npm run dev
+```
+O frontend estará disponível em: http://localhost:8080
 
-## I want to use a custom domain - is that possible?
+## 🎯 Como Usar
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+1. **Acesse a aplicação** em http://localhost:8080
+2. **Digite um prompt** descrevendo o jogo que deseja criar
+   - Exemplo: *"jogo de snake colorido com pontuação"*
+   - Exemplo: *"plataforma 2D com pulos e obstáculos"*
+   - Exemplo: *"pong simples com duas raquetes"*
+3. **Clique em "Criar Jogo"**
+4. **Aguarde a geração** (geralmente 10-30 segundos)
+5. **Jogue instantaneamente** no preview
+6. **Baixe o código** se desejar modificar
+
+## 📁 Estrutura do Projeto
+
+```
+├── main.py                 # Backend FastAPI
+├── start_backend_safe.py   # Script para iniciar backend
+├── src/
+│   ├── components/         # Componentes React
+│   ├── pages/             # Páginas da aplicação
+│   │   ├── CreateGame.tsx # Página de criação
+│   │   └── GameWorkspace.tsx # Workspace do jogo
+│   ├── services/          # Serviços de API
+│   └── lib/               # Utilitários
+├── public/                # Arquivos estáticos
+└── package.json          # Dependências Node.js
+```
+
+## 🎮 Exemplos de Prompts
+
+- *"jogo de quebra-blocos estilo Breakout"*
+- *"endless runner espacial com obstáculos"*
+- *"puzzle de combinar cores"*
+- *"jogo de tiro em primeira pessoa simples"*
+- *"simulador de fazenda com plantações"*
+- *"jogo de corrida top-down"*
+
+## ⚙️ Configurações Avançadas
+
+### Personalizar Geração
+Edite `SYSTEM_INSTRUCTIONS` em `main.py` para:
+- Alterar estilo dos jogos
+- Modificar complexidade padrão
+- Adicionar novos recursos
+
+### CORS
+O backend está configurado para aceitar conexões de:
+- http://localhost:5173
+- http://localhost:8080
+- http://localhost:3000
+
+## 🐛 Solução de Problemas
+
+### Backend não inicia
+- Verifique se a `GEMINI_API_KEY` está configurada
+- Confirme que o Python 3.11+ está instalado
+- Execute `pip install -r requirements.txt` se houver um arquivo
+
+### Frontend não carrega
+- Execute `npm install` novamente
+- Verifique se o Node.js 16+ está instalado
+- Limpe o cache: `npm run dev -- --force`
+
+### Jogos com erros
+- Os jogos são gerados com proteções DOM automáticas
+- Se persistir, tente prompts mais específicos
+- Verifique o console do navegador para detalhes
+
+## 🤝 Contribuindo
+
+1. Fork o projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para detalhes.
+
+## 🙏 Agradecimentos
+
+- **Google Gemini AI** - Pela poderosa API de geração
+- **FastAPI** - Framework web rápido e moderno
+- **React** - Biblioteca para interfaces dinâmicas
+- **Vite** - Build tool ultrarrápido
+
+---
+
+**Divirta-se criando jogos! 🎉**
