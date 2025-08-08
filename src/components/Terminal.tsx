@@ -11,11 +11,11 @@ const Terminal = () => {
   useEffect(() => {
     const lines = [
       { text: "$ ", delay: 500 },
-      { text: "create-game Make a space shooter with neon graphics", delay: 100, finalDelay: 800 },
-      { text: "\n✨ Generating game assets...", delay: 50, finalDelay: 500 },
-      { text: "\nCreating game logic...", delay: 50, finalDelay: 500 },
-      { text: "\nOptimizing for web...", delay: 50, finalDelay: 700 },
-      { text: "\n🎮 Game ready! Play now or customize further.", delay: 50, finalDelay: 0 }
+      { text: "create-game Jogo de nave espacial com asteroides e power-ups", delay: 100, finalDelay: 800 },
+      { text: "\n✨ Gerando HTML5 Canvas...", delay: 50, finalDelay: 500 },
+      { text: "\nAdicionando controles e física...", delay: 50, finalDelay: 500 },
+      { text: "\nCriando sistema de pontuação...", delay: 50, finalDelay: 700 },
+      { text: "\n🎮 Jogo pronto para jogar! Abra no navegador.", delay: 50, finalDelay: 0 }
     ];
 
     let currentText = '';
